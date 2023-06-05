@@ -21,7 +21,8 @@ class OfferCoordinator: OfferCoordinatorLogic {
     }
     
     func start() {
-        let viewModel = OfferListViewModel(coordinator: self)
+        let apiService = OfferService()
+        let viewModel = OfferListViewModel(coordinator: self, apiService: apiService)
         let viewController = OfferListViewController(viewModel: viewModel)
         navigationController.pushViewController(viewController, animated: true)
     }

@@ -9,7 +9,7 @@ import Foundation
 
 class OfferService: NSObject {
     
-    func getOffers(completion: @escaping ([Offer]) -> ()) {
+    func getOffers(completion: @escaping (Result<[Offer], ErrorResult>) -> ()) {
         guard let url = URL(string: "https://raw.githubusercontent.com/leboncoin/paperclip/master/listing.json") else {
             return
         }
@@ -22,17 +22,17 @@ class OfferService: NSObject {
                 if let data = data, httpResponse.statusCode.isValidResponse() {
                     let jsonDecoder = JSONDecoder()
                     let emptData = try! jsonDecoder.decode([Offer].self, from: data)
-                    completion(emptData)
+                    completion(Result.success(emptData))
                 }else {
-                    print("error 2 to handle")
+                    completion(Result.failure(.parsing))
                 }
             } else {
-                print("error to handle")
+                completion(Result.failure(.network))
             }
         }.resume()
     }
     
-    func getCategories(completion: @escaping ([Category]) -> ()) {
+    func getCategories(completion: @escaping (Result<[Category], ErrorResult>) -> ()) {
         guard let url = URL(string: "https://raw.githubusercontent.com/leboncoin/paperclip/master/categories.json") else {
             return
         }
@@ -45,12 +45,12 @@ class OfferService: NSObject {
                 if let data = data, httpResponse.statusCode.isValidResponse() {
                     let jsonDecoder = JSONDecoder()
                     let emptData = try! jsonDecoder.decode([Category].self, from: data)
-                    completion(emptData)
+                    completion(Result.success(emptData))
                 }else {
-                    print("error 2 to handle")
+                    completion(Result.failure(.parsing))
                 }
             } else {
-                print("error to handle")
+                completion(Result.failure(.network))
             }
         }.resume()
     }

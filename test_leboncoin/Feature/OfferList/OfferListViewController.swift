@@ -58,6 +58,7 @@ final class OfferListViewController: GenericViewController {
     init(viewModel: OfferListViewModel) {
         self.viewModel = viewModel
         super.init(nibName: nil, bundle: nil)
+        setupViewModel()
     }
     
     required init?(coder: NSCoder) {
@@ -67,7 +68,6 @@ final class OfferListViewController: GenericViewController {
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
         setupAutoLayout()
-        setupViewModel()
     }
     
     @objc
@@ -87,6 +87,16 @@ final class OfferListViewController: GenericViewController {
                 self.updateUI()
             }
         }
+        viewModel.onErrorHandling = { error in
+            DispatchQueue.main.async {
+                let message = error == .network ? "Une erreur réseau s'est produite" : "Impossible de lire les données"
+                let alert = UIAlertController(title: "Erreur de récupération des données", message: message, preferredStyle: .alert)
+                let action = UIAlertAction(title: "OK", style: .destructive)
+                alert.addAction(action)
+                self.present(alert, animated: true)
+            }
+        }
+        
     }
     
     

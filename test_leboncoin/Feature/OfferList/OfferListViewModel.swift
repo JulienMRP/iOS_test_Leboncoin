@@ -26,6 +26,7 @@ final class OfferListViewModel: NSObject {
     
     var bindDataToController : (() -> ()) = {}
     var bindCategoriesToController : (() -> ()) = {}
+    var onErrorHandling : ((ErrorResult) -> ()) = { _ in }
     
     var numberOfCells: Int {
         return filteredData.count
@@ -35,8 +36,8 @@ final class OfferListViewModel: NSObject {
         return categories.count
     }
     
-    init(coordinator: OfferCoordinator) {
-        self.apiService = OfferService()
+    init(coordinator: OfferCoordinator, apiService: OfferService) {
+        self.apiService = apiService
         self.coordinator = coordinator
         super.init()
         getCategories()
@@ -50,19 +51,34 @@ final class OfferListViewModel: NSObject {
     }
     
     private func getCategories() {
-        apiService.getCategories { categories in
-            self.categories = categories.sorted { $0.id < $1.id }
-            self.getData()
+        apiService.getCategories { [weak self] result in
+            guard let self = self else { return }
+            switch result {
+            case .failure(let error):
+                self.onErrorHandling(error)
+            case .success(let categories):
+                self.categories = categories.sorted { $0.id < $1.id }
+                self.getData()
+            }
+                        
         }
     }
     
     private func getData() {
-        apiService.getOffers { offers in
-            let sortedOffers = offers
-                .sorted { $0.creationDate.isAfter($1.creationDate) }
-                .sorted { $0.isUrgent && !$1.isUrgent }
-            self.data = sortedOffers
-            self.filteredData = sortedOffers
+        apiService.getOffers { [weak self] result in
+            guard let self = self else { return }
+            switch result {
+            case .failure(let error):
+                self.onErrorHandling(error)
+            case .success(let offers):
+                let sortedOffers = offers
+                    .sorted { $0.creationDate.isAfter($1.creationDate) }
+                    .sorted { $0.isUrgent && !$1.isUrgent }
+                self.data = sortedOffers
+                self.filteredData = sortedOffers
+            }
+            
+            
         }
     }
     
